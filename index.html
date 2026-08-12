@@ -1011,14 +1011,44 @@ function pdfFileName(){
   return raw.replace(/[\\/:*?"<>|]+/g, '').trim() + '.pdf';
 }
 
+function mmToPx(mm){
+  const probe = document.createElement('div');
+  probe.style.cssText = 'width:1mm;position:absolute;visibility:hidden;top:-9999px;left:-9999px;';
+  document.body.appendChild(probe);
+  const pxPerMm = probe.getBoundingClientRect().width || 3.7795;
+  document.body.removeChild(probe);
+  return mm * pxPerMm;
+}
+
+function applyFitToOnePage(){
+  const sheet = document.getElementById('sheet');
+  sheet.style.transform = 'none';
+  sheet.style.transformOrigin = 'top center';
+  const itemCount = document.querySelectorAll('#itemsBody tr').length;
+  if(itemCount !== 1) return;
+  const pageHeightPx = mmToPx(297 - 24);
+  const contentHeightPx = sheet.scrollHeight;
+  if(contentHeightPx > pageHeightPx){
+    const scale = Math.max(0.5, pageHeightPx / contentHeightPx);
+    sheet.style.transform = 'scale(' + scale + ')';
+  }
+}
+
+function resetFitToOnePage(){
+  const sheet = document.getElementById('sheet');
+  sheet.style.transform = 'none';
+}
+
 function doPrint(){
   updateAppendix();
   document.body.classList.add('print-mode');
+  applyFitToOnePage();
   window.print();
 }
 
 window.addEventListener('afterprint', function(){
   document.body.classList.remove('print-mode');
+  resetFitToOnePage();
 });
 
 async function downloadPdf(){
@@ -1032,6 +1062,7 @@ async function downloadPdf(){
   btn.disabled = true;
   updateAppendix();
   document.body.classList.add('print-mode');
+  applyFitToOnePage();
   const el = document.getElementById('sheet');
   const opt = {
     margin: 8,
@@ -1054,6 +1085,7 @@ async function downloadPdf(){
     alert('Не вдалося зберегти PDF. Спробуй кнопку "Друк" і збережи як PDF через діалог друку.');
   }finally{
     document.body.classList.remove('print-mode');
+    resetFitToOnePage();
     btn.textContent = originalText;
     btn.disabled = false;
   }
