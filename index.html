@@ -117,9 +117,9 @@
     color:var(--ink);
     margin:0 0 4px;
   }
-  .client-row{ font-size:13px; margin-bottom:22px; display:flex; gap:8px; align-items:baseline; }
+  .client-row{ font-size:13px; margin-bottom:22px; display:flex; gap:8px 16px; align-items:baseline; flex-wrap:wrap; }
   .client-row label{ color:var(--ink-soft); white-space:nowrap; }
-  .client-row input{ flex:1; font-size:13px; }
+  .client-row input{ flex:1; min-width:120px; font-size:13px; }
 
   table{ width:100%; border-collapse:collapse; margin-bottom:4px; }
   thead th{
@@ -591,11 +591,22 @@
     .client-row{ flex-wrap:wrap; }
 
     .field, input, select, textarea{ font-size:16px; }
-    input.qty-field{ width:64px; }
-    input.unit-field{ width:50px; }
-    input.price-field{ width:88px; }
-    input.name-field{ min-width:130px; }
-    thead th{ font-size:10px; }
+
+    .table-scroll{ margin:0 -16px; padding:0 16px; }
+    thead th{ font-size:9px; padding:0 2px 6px; }
+    tbody td{ padding:5px 2px; font-size:12.5px; }
+    .idx{ display:none; }
+    .photo-cell{ width:36px; }
+    .photo-wrap{ width:32px; height:32px; }
+    .photo-box{ width:32px; height:32px; font-size:14px; }
+    .photo-edit{ width:14px; height:14px; font-size:8px; }
+    input.name-field{ min-width:64px; }
+    input.qty-field{ width:42px; padding-left:1px; padding-right:1px; }
+    input.unit-field{ width:30px; padding-left:1px; padding-right:1px; }
+    input.price-field{ width:56px; padding-left:1px; padding-right:1px; }
+    .sum-cell{ font-size:12px; }
+    .row-actions{ width:18px; }
+    .del-btn{ padding:2px 1px; font-size:14px; }
 
     .delivery-block{
       flex-direction:column;
@@ -669,6 +680,8 @@
     <div class="client-row">
       <label>Клієнт / об'єкт:</label>
       <input class="field" id="clientName" placeholder="назва компанії або об'єкта">
+      <label>Тел. клієнта:</label>
+      <input class="field" id="clientPhone" placeholder="0XX XXX XX XX">
     </div>
 
     <div class="table-scroll">
@@ -969,6 +982,7 @@ function resetDoc(){
   if(!confirm('Очистити всі товари і почати нову КП?')) return;
   document.getElementById('itemsBody').innerHTML = '';
   document.getElementById('clientName').value = '';
+  document.getElementById('clientPhone').value = '';
   document.getElementById('deliveryLocation').value = '';
   document.getElementById('deliveryCost').value = 0;
   document.getElementById('footnote').value = '';
@@ -999,6 +1013,7 @@ function saveProposal(){
     }
     const data = {
       client: document.getElementById('clientName').value || 'Без назви',
+      clientPhone: document.getElementById('clientPhone').value,
       date: document.getElementById('docDate').value,
       companyName: document.getElementById('companyName').value,
       companyPhone: document.getElementById('companyPhone').value,
@@ -1078,6 +1093,7 @@ function loadProposal(key){
     }
     const data = JSON.parse(raw);
     document.getElementById('clientName').value = data.client || '';
+    document.getElementById('clientPhone').value = data.clientPhone || '';
     document.getElementById('docDate').value = data.date || todayISO();
     document.getElementById('companyName').value = data.companyName || 'БУДМАТ ГРУП';
     document.getElementById('companyPhone').value = data.companyPhone || '';
@@ -1154,10 +1170,11 @@ function buildOfferSlideElement(){
   wrap.appendChild(sub);
 
   const client = document.getElementById('clientName').value;
-  if(client){
+  const clientPhone = document.getElementById('clientPhone').value;
+  if(client || clientPhone){
     const cl = document.createElement('div');
     cl.className = 'offer-client';
-    cl.textContent = 'Для: ' + client;
+    cl.textContent = 'Для: ' + [client, clientPhone].filter(Boolean).join(', ');
     wrap.appendChild(cl);
   }
 
