@@ -42,6 +42,25 @@
     gap:10px;
     flex-wrap:wrap;
   }
+
+  .client-banner{
+    display:none;
+    max-width:820px;
+    margin:0 auto 14px;
+    background:var(--brick-soft);
+    color:var(--brick);
+    font-size:12.5px;
+    font-weight:600;
+    padding:10px 14px;
+    border-radius:6px;
+  }
+  .client-mode .client-banner{ display:block; }
+  .client-mode .client-hide{ display:none !important; }
+  .client-mode .photo-edit{ display:none !important; }
+  .client-mode .del-btn{ display:none !important; }
+  .client-mode .row-actions{ display:none !important; }
+  .client-mode .add-row-wrap{ display:none !important; }
+  .client-mode .empty-hint{ display:none !important; }
   button{
     font-family:inherit;
     font-size:13px;
@@ -785,13 +804,15 @@
 
   <div class="toolbar no-print">
     <button class="primary" onclick="openViewer()">Переглянути КП</button>
-    <button onclick="openPicker()">+ Додати товар</button>
-    <button onclick="saveProposal()">Зберегти КП</button>
-    <button onclick="openSavedList()">Мої КП</button>
+    <button class="client-hide" onclick="openPicker()">+ Додати товар</button>
+    <button class="client-hide" onclick="copyShareLink()">Посилання для клієнта</button>
+    <button class="client-hide" onclick="saveProposal()">Зберегти КП</button>
+    <button class="client-hide" onclick="openSavedList()">Мої КП</button>
     <button class="ghost" onclick="doPrint()">Друк</button>
     <button class="ghost" id="pdfBtn" onclick="downloadPdf()">Зберегти PDF</button>
-    <button class="ghost" onclick="resetDoc()">Очистити (нова КП)</button>
+    <button class="ghost client-hide" onclick="resetDoc()">Очистити (нова КП)</button>
   </div>
+  <div class="client-banner no-print" id="clientBanner">Це готова комерційна пропозиція від ЄВРОБУД. Переглянь нижче або відкрий на весь екран кнопкою вище.</div>
 
   <div class="sheet" id="sheet">
     <div class="doc-head">
@@ -1224,7 +1245,7 @@ function photoBoxClick(id){
   const box = document.querySelector('#' + id + ' .photo-box');
   if(box.dataset.src){
     openLightbox(box.dataset.src);
-  } else {
+  } else if(!document.body.classList.contains('client-mode')){
     document.getElementById('file_' + id).click();
   }
 }
@@ -1676,6 +1697,112 @@ function closeViewer(){
   });
 })();
 
+/* ---------- посилання для клієнта (дані кодуються прямо в URL) ---------- */
+
+function encodeShareData(){
+  const items = [];
+  document.querySelectorAll('#itemsBody tr').forEach(tr => {
+    items.push({
+      n: tr.querySelector('.name-field').value,
+      q: tr.querySelector('.qty-field').value,
+      u: tr.querySelector('.unit-field').value,
+      p: tr.querySelector('.price-field').value
+    });
+  });
+  const data = {
+    pt: document.getElementById('proposalTitle').value,
+    c: document.getElementById('clientName').value,
+    cp: document.getElementById('clientPhone').value,
+    d: document.getElementById('docDate').value,
+    cn: document.getElementById('companyName').value,
+    ph: document.getElementById('companyPhone').value,
+    ch: document.getElementById('companyChannels').value,
+    dl: document.getElementById('deliveryLocation').value,
+    dc: document.getElementById('deliveryCost').value,
+    fn: document.getElementById('footnote').value,
+    items: items
+  };
+  const json = JSON.stringify(data);
+  const bytes = new TextEncoder().encode(json);
+  let binary = '';
+  bytes.forEach(b => { binary += String.fromCharCode(b); });
+  return btoa(binary);
+}
+
+function decodeShareData(encoded){
+  const binary = atob(encoded);
+  const bytes = new Uint8Array(binary.length);
+  for(let i = 0; i < binary.length; i++){ bytes[i] = binary.charCodeAt(i); }
+  const json = new TextDecoder().decode(bytes);
+  return JSON.parse(json);
+}
+
+function buildShareUrl(){
+  const encoded = encodeShareData();
+  const base = window.location.origin + window.location.pathname;
+  return base + '#kp=' + encoded;
+}
+
+async function copyShareLink(){
+  const itemCount = document.querySelectorAll('#itemsBody tr').length;
+  if(itemCount === 0){
+    alert('Спочатку додай хоча б один товар.');
+    return;
+  }
+  const url = buildShareUrl();
+  try{
+    await navigator.clipboard.writeText(url);
+    alert('Посилання скопійовано. Встав його клієнту в Viber, Telegram чи будь-де.');
+  }catch(err){
+    prompt('Не вдалося скопіювати автоматично. Скопіюй посилання вручну:', url);
+  }
+}
+
+function enableClientMode(){
+  document.body.classList.add('client-mode');
+  document.querySelectorAll('#sheet input, #sheet textarea').forEach(el => {
+    el.readOnly = true;
+  });
+}
+
+function applyClientModeFromHash(){
+  const hash = window.location.hash;
+  if(!hash || hash.indexOf('#kp=') !== 0) return;
+  try{
+    const data = decodeShareData(hash.slice(4));
+
+    document.getElementById('proposalTitle').value = data.pt || '';
+    document.getElementById('clientName').value = data.c || '';
+    document.getElementById('clientPhone').value = data.cp || '';
+    document.getElementById('docDate').value = data.d || todayISO();
+    document.getElementById('companyName').value = data.cn || 'ЄВРОБУД';
+    document.getElementById('companyPhone').value = data.ph || '';
+    document.getElementById('companyChannels').value = data.ch || '';
+    document.getElementById('deliveryLocation').value = data.dl || '';
+    document.getElementById('deliveryCost').value = data.dc || 0;
+    document.getElementById('footnote').value = data.fn || '';
+
+    document.getElementById('itemsBody').innerHTML = '';
+    (data.items || []).forEach(it => {
+      const match = PRODUCTS.find(p => p.name === it.n);
+      addRow({
+        name: it.n,
+        qty: it.q,
+        unit: it.u,
+        price: it.p,
+        photo: match ? match.photo : ''
+      });
+    });
+    recalc();
+    updateEmptyHint();
+    updateAppendix();
+    updateDocTitle();
+    enableClientMode();
+  }catch(err){
+    console.error('share link decode error', err);
+  }
+}
+
 /* ---------- init ---------- */
 
 document.getElementById('docDate').value = todayISO();
@@ -1683,6 +1810,7 @@ renderPicker();
 updateEmptyHint();
 recalc();
 updateDocTitle();
+applyClientModeFromHash();
 </script>
 </body>
 </html>
