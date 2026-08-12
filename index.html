@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root{
     --ink:#182337;
@@ -635,30 +636,34 @@
     .offer-brand{ font-size:17px; }
   }
 
+  body.print-mode{ background:#fff; padding:0; }
+  .print-mode .toolbar{ display:none; }
+  .print-mode .sheet{ box-shadow:none; max-width:none; padding:8mm 12mm; }
+  .print-mode .field{ border-bottom:none; }
+  .print-mode .del-btn{ display:none; }
+  .print-mode .add-row-wrap{ display:none; }
+  .print-mode .photo-box{ border:none; cursor:default; }
+  .print-mode .photo-edit{ display:none !important; }
+  .print-mode .lightbox{ display:none !important; }
+  .print-mode .picker-overlay{ display:none !important; }
+  .print-mode .viewer-overlay{ display:none !important; }
+  .print-mode .empty-hint{ display:none; }
+  .print-mode .proposal-title-row:has(#proposalTitle:placeholder-shown){ display:none; }
+  .print-mode .total-row{
+    background:var(--brick-soft) !important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .print-mode .total-row .label{ color:var(--ink) !important; }
+  .print-mode .total-row .value{ color:var(--brick) !important; }
+  .print-mode .appendix-photo-wrap{ cursor:default; page-break-inside:avoid; }
+  .print-mode .appendix-page{ page-break-inside:avoid; }
+  @page{ size:A4; margin:12mm; }
   @media print{
-    body{ background:#fff; padding:0; }
     .toolbar{ display:none; }
-    .sheet{ box-shadow:none; max-width:none; padding:8mm 12mm; }
-    .field{ border-bottom:none; }
-    .del-btn{ display:none; }
-    .add-row-wrap{ display:none; }
-    .photo-box{ border:none; cursor:default; }
-    .photo-edit{ display:none !important; }
     .lightbox{ display:none !important; }
     .picker-overlay{ display:none !important; }
     .viewer-overlay{ display:none !important; }
-    .empty-hint{ display:none; }
-    .proposal-title-row:has(#proposalTitle:placeholder-shown){ display:none; }
-    .total-row{
-      background:var(--brick-soft) !important;
-      -webkit-print-color-adjust:exact;
-      print-color-adjust:exact;
-    }
-    .total-row .label{ color:var(--ink) !important; }
-    .total-row .value{ color:var(--brick) !important; }
-    .appendix-photo-wrap{ cursor:default; page-break-inside:avoid; }
-    .appendix-page{ page-break-inside:avoid; }
-    @page{ size:A4; margin:12mm; }
   }
 </style>
 </head>
@@ -669,7 +674,8 @@
     <button onclick="openPicker()">+ Додати товар</button>
     <button onclick="saveProposal()">Зберегти КП</button>
     <button onclick="openSavedList()">Мої КП</button>
-    <button class="ghost" onclick="window.print()">Друк / Зберегти PDF</button>
+    <button class="ghost" onclick="doPrint()">Друк</button>
+    <button class="ghost" onclick="downloadPdf()">Зберегти PDF</button>
     <button class="ghost" onclick="resetDoc()">Очистити (нова КП)</button>
   </div>
 
@@ -800,6 +806,49 @@ function updateDocTitle(){
   const t = document.getElementById('proposalTitle').value.trim();
   const c = document.getElementById('clientName').value.trim();
   document.title = t || (c ? ('КП - ' + c) : 'Комерційна пропозиція');
+}
+
+function pdfFileName(){
+  const t = document.getElementById('proposalTitle').value.trim();
+  const c = document.getElementById('clientName').value.trim();
+  const raw = t || (c ? ('КП - ' + c) : 'Комерційна пропозиція');
+  return raw.replace(/[\\/:*?"<>|]+/g, '').trim() + '.pdf';
+}
+
+function doPrint(){
+  updateAppendix();
+  document.body.classList.add('print-mode');
+  window.print();
+}
+
+window.addEventListener('afterprint', function(){
+  document.body.classList.remove('print-mode');
+});
+
+async function downloadPdf(){
+  if(typeof html2pdf === 'undefined'){
+    alert('Не вдалося завантажити модуль PDF. Спробуй кнопку "Друк" і збережи як PDF через діалог друку.');
+    return;
+  }
+  updateAppendix();
+  document.body.classList.add('print-mode');
+  const el = document.getElementById('sheet');
+  const opt = {
+    margin: 8,
+    filename: pdfFileName(),
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'avoid-all'] }
+  };
+  try{
+    await html2pdf().set(opt).from(el).save();
+  }catch(err){
+    console.error('pdf error', err);
+    alert('Не вдалося зберегти PDF. Спробуй кнопку "Друк" і збережи як PDF через діалог друку.');
+  }finally{
+    document.body.classList.remove('print-mode');
+  }
 }
 
 function fmt(n){
