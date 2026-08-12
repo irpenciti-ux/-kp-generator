@@ -113,6 +113,14 @@
     align-items:baseline;
     gap:6px;
   }
+  .brand .sub select.manager-select{
+    font-size:12px;
+    color:var(--brick);
+    font-weight:700;
+    width:auto;
+    background:transparent;
+    cursor:pointer;
+  }
   .brand .sub input.phone-field{ font-size:12px; color:var(--ink-soft); width:150px; font-weight:600; }
   .brand .sub input.chan-field{ font-size:11px; color:var(--ink-soft); width:220px; }
   .meta{ text-align:right; font-size:12px; color:var(--ink-soft); }
@@ -675,6 +683,7 @@
     .brand-logo{ width:38px; height:38px; }
     .brand input{ font-size:19px; }
     .brand .sub{ flex-wrap:wrap; }
+    .brand .sub select.manager-select{ flex:0 0 auto; }
     .brand .sub input.phone-field{ width:auto; flex:1 1 130px; }
     .brand .sub input.chan-field{ width:auto; flex:2 1 160px; }
     .meta{ text-align:left; }
@@ -822,6 +831,11 @@
         <div class="brand">
           <input class="field" id="companyName" value="ЄВРОБУД">
           <div class="sub">
+            <select class="field manager-select" id="managerSelect" onchange="applyManager()">
+              <option value="">Менеджер...</option>
+              <option value="Назар|+380 96 477 68 72">Назар</option>
+              <option value="Олег|+380 93 451 46 81">Олег</option>
+            </select>
             <input class="field phone-field" id="companyPhone" value="+380 93 451 46 81">
             <input class="field chan-field" id="companyChannels" value="Viber, Telegram, WhatsApp">
           </div>
@@ -1027,6 +1041,30 @@ function autoResizeName(el){
   if(!el) return;
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
+}
+
+function applyManager(){
+  const select = document.getElementById('managerSelect');
+  const val = select.value;
+  if(!val) return;
+  const parts = val.split('|');
+  document.getElementById('companyPhone').value = parts[1] || '';
+  try{ localStorage.setItem('kp_manager', val); }catch(e){}
+}
+
+function restoreManagerFromPhone(phone){
+  const select = document.getElementById('managerSelect');
+  let matched = false;
+  for(const opt of select.options){
+    if(!opt.value) continue;
+    const optPhone = opt.value.split('|')[1];
+    if(optPhone === phone){
+      select.value = opt.value;
+      matched = true;
+      break;
+    }
+  }
+  if(!matched) select.value = '';
 }
 
 function updateDocTitle(){
@@ -1528,6 +1566,7 @@ function loadProposal(key){
     document.getElementById('docDate').value = data.date || todayISO();
     document.getElementById('companyName').value = data.companyName || 'БУДМАТ ГРУП';
     document.getElementById('companyPhone').value = data.companyPhone || '';
+    restoreManagerFromPhone(data.companyPhone || '');
     document.getElementById('companyChannels').value = data.companyChannels || '';
     document.getElementById('deliveryLocation').value = data.deliveryLocation || '';
     document.getElementById('deliveryCost').value = data.deliveryCost || 0;
@@ -1838,6 +1877,9 @@ function enableClientMode(){
   document.querySelectorAll('#sheet input, #sheet textarea').forEach(el => {
     el.readOnly = true;
   });
+  document.querySelectorAll('#sheet select').forEach(el => {
+    el.disabled = true;
+  });
 }
 
 function applyClientModeFromHash(){
@@ -1852,6 +1894,7 @@ function applyClientModeFromHash(){
     document.getElementById('docDate').value = data.d || todayISO();
     document.getElementById('companyName').value = data.cn || 'ЄВРОБУД';
     document.getElementById('companyPhone').value = data.ph || '';
+    restoreManagerFromPhone(data.ph || '');
     document.getElementById('companyChannels').value = data.ch || '';
     document.getElementById('deliveryLocation').value = data.dl || '';
     document.getElementById('deliveryCost').value = data.dc || 0;
@@ -1885,6 +1928,13 @@ document.getElementById('docDate').value = todayISO();
 renderPicker();
 updateEmptyHint();
 recalc();
+try{
+  const savedManager = localStorage.getItem('kp_manager');
+  if(savedManager){
+    document.getElementById('managerSelect').value = savedManager;
+    applyManager();
+  }
+}catch(e){}
 updateDocTitle();
 applyClientModeFromHash();
 </script>
