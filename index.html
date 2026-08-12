@@ -2,6 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Комерційна пропозиція</title>
 <style>
   :root{
@@ -176,6 +177,16 @@
     justify-content:center;
   }
   .photo-wrap:hover .photo-edit{ display:flex; }
+  @media (hover: none){
+    .photo-edit{ display:flex; }
+  }
+
+  .table-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    margin:0 -6px;
+    padding:0 6px;
+  }
 
   .lightbox{
     display:none;
@@ -515,6 +526,67 @@
     color:rgba(255,255,255,0.72);
   }
 
+  /* ---------- mobile ---------- */
+
+  @media (max-width:640px){
+    body{ padding:14px 8px 40px; }
+    .toolbar{
+      gap:8px;
+    }
+    .toolbar button{
+      flex:1 1 calc(50% - 8px);
+      padding:11px 10px;
+      font-size:13px;
+    }
+    .sheet{
+      padding:22px 16px 28px;
+    }
+    .doc-head{
+      flex-direction:column;
+      align-items:flex-start;
+      gap:14px;
+    }
+    .brand, .meta{ width:100%; }
+    .brand input{ font-size:19px; }
+    .brand .sub{ flex-wrap:wrap; }
+    .brand .sub input.phone-field{ width:auto; flex:1 1 130px; }
+    .brand .sub input.chan-field{ width:auto; flex:2 1 160px; }
+    .meta{ text-align:left; }
+    .meta div{ justify-content:flex-start; }
+    .meta input{ text-align:left; width:auto; flex:1; }
+
+    .client-row{ flex-wrap:wrap; }
+
+    .field, input, select, textarea{ font-size:16px; }
+    input.qty-field{ width:64px; }
+    input.unit-field{ width:50px; }
+    input.price-field{ width:88px; }
+    input.name-field{ min-width:130px; }
+    thead th{ font-size:10px; }
+
+    .delivery-block{
+      flex-direction:column;
+      align-items:stretch;
+      gap:10px;
+    }
+    .delivery-block .cost{ text-align:left; }
+    .delivery-block .cost input{ width:100px; }
+
+    .total-row{ padding:12px 14px; }
+
+    .picker-panel, .picker-overlay .picker-panel{ padding:18px; }
+    .picker-grid{ grid-template-columns:repeat(2, 1fr); gap:10px; }
+
+    .lightbox{ padding:14px; }
+
+    .viewer-stage{ padding:0 42px; }
+    .viewer-arrow{ width:36px; height:36px; font-size:18px; }
+    .viewer-arrow.prev{ left:6px; }
+    .viewer-arrow.next{ right:6px; }
+    .offer-slide{ padding:20px 16px; max-height:76vh; }
+    .offer-brand{ font-size:17px; }
+  }
+
   @media print{
     body{ background:#fff; padding:0; }
     .toolbar{ display:none; }
@@ -563,6 +635,7 @@
       <input class="field" id="clientName" placeholder="назва компанії або об'єкта">
     </div>
 
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -578,6 +651,7 @@
       </thead>
       <tbody id="itemsBody"></tbody>
     </table>
+    </div>
     <div class="empty-hint no-print" id="emptyHint">Товарів ще немає. Натисни «+ Додати товар», щоб обрати позицію зі списку.</div>
 
     <div class="add-row-wrap no-print">
