@@ -805,7 +805,7 @@
   <div class="toolbar no-print">
     <button class="primary" onclick="openViewer()">Переглянути КП</button>
     <button class="client-hide" onclick="openPicker()">+ Додати товар</button>
-    <button class="client-hide" onclick="shareToClient()">Поділитися з клієнтом</button>
+    <button class="client-hide" id="shareBtn" onclick="shareToClient()">Поділитися з клієнтом</button>
     <button class="client-hide" onclick="saveProposal()">Зберегти КП</button>
     <button class="client-hide" onclick="openSavedList()">Мої КП</button>
     <button class="ghost" onclick="doPrint()">Друк</button>
@@ -1750,24 +1750,16 @@ async function shareToClient(){
     return;
   }
   const url = buildShareUrl();
-  const title = document.getElementById('proposalTitle').value.trim() || 'Комерційна пропозиція';
-  const client = document.getElementById('clientName').value.trim();
-  const text = title + (client ? ' для ' + client : '');
-
-  if(navigator.share){
-    try{
-      await navigator.share({ title: title, text: text, url: url });
-      return;
-    }catch(err){
-      if(err && err.name === 'AbortError') return;
-      console.error('share error', err);
-    }
-  }
+  const btn = document.getElementById('shareBtn');
+  const originalText = btn ? btn.textContent : '';
 
   try{
     await navigator.clipboard.writeText(url);
-    alert('Посилання скопійовано. Встав його клієнту в Viber, Telegram чи будь-де.');
-  }catch(err2){
+    if(btn){
+      btn.textContent = 'Скопійовано ✓';
+      setTimeout(() => { btn.textContent = originalText; }, 1600);
+    }
+  }catch(err){
     prompt('Скопіюй посилання вручну:', url);
   }
 }
