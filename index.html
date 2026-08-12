@@ -1020,16 +1020,28 @@ function mmToPx(mm){
   return mm * pxPerMm;
 }
 
+function setPrintWidth(){
+  const sheet = document.getElementById('sheet');
+  sheet.style.width = mmToPx(210 - 24) + 'px';
+}
+
+function clearPrintWidth(){
+  const sheet = document.getElementById('sheet');
+  sheet.style.width = '';
+}
+
 function applyFitToOnePage(){
   const sheet = document.getElementById('sheet');
   sheet.style.transform = 'none';
   sheet.style.transformOrigin = 'top center';
+  setPrintWidth();
   const itemCount = document.querySelectorAll('#itemsBody tr').length;
   if(itemCount !== 1) return;
+  void sheet.offsetHeight; // форсуємо перерахунок розкладки під нову ширину перед виміром
   const pageHeightPx = mmToPx(297 - 24);
   const contentHeightPx = sheet.scrollHeight;
   if(contentHeightPx > pageHeightPx){
-    const scale = Math.max(0.5, pageHeightPx / contentHeightPx);
+    const scale = Math.max(0.45, pageHeightPx / contentHeightPx);
     sheet.style.transform = 'scale(' + scale + ')';
   }
 }
@@ -1037,6 +1049,7 @@ function applyFitToOnePage(){
 function resetFitToOnePage(){
   const sheet = document.getElementById('sheet');
   sheet.style.transform = 'none';
+  clearPrintWidth();
 }
 
 function doPrint(){
