@@ -146,7 +146,7 @@
   }
   td.num{ text-align:right; white-space:nowrap; }
   td.idx{ color:var(--ink-soft); width:20px; }
-  input.name-field{ width:100%; min-width:110px; }
+  .name-field{ width:100%; min-width:110px; resize:none; overflow:hidden; display:block; line-height:1.3; }
   input.qty-field, input.unit-field{ width:52px; text-align:right; }
   input.unit-field{ width:40px; text-align:left; }
   input.price-field{ width:74px; text-align:right; }
@@ -636,10 +636,9 @@
       width:100%;
       justify-content:center;
     }
-    input.name-field{
+    .name-field{
       font-size:16px;
       font-weight:700;
-      white-space:normal;
       min-width:0;
       text-align:center;
     }
@@ -845,6 +844,18 @@ function todayISO(){
   return d.toISOString().slice(0,10);
 }
 
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function autoResizeName(el){
+  if(!el) return;
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 function updateDocTitle(){
   const t = document.getElementById('proposalTitle').value.trim();
   const c = document.getElementById('clientName').value.trim();
@@ -981,7 +992,7 @@ function addRow(prefill){
       <input type="file" id="file_${id}" accept="image/*" style="display:none" onchange="handlePhoto(event,'${id}')">
     </td>
     <td class="idx"></td>
-    <td class="name-cell"><input class="field name-field" placeholder="назва товару" value="${prefill?prefill.name:''}" oninput="updateAppendix()"></td>
+    <td class="name-cell"><textarea class="field name-field" rows="1" placeholder="назва товару" oninput="updateAppendix(); autoResizeName(this);">${prefill?escapeHtml(prefill.name):''}</textarea></td>
     <td class="num"><input class="field qty-field" type="number" min="0" step="1" value="${prefill?prefill.qty:''}" oninput="recalcRow('${id}')"></td>
     <td><input class="field unit-field" placeholder="шт" value="${prefill?prefill.unit:'шт'}"></td>
     <td class="num"><input class="field price-field" type="number" min="0" step="0.01" value="${prefill?prefill.price:''}" oninput="recalcRow('${id}')"></td>
@@ -989,6 +1000,7 @@ function addRow(prefill){
     <td class="row-actions no-print"><button class="del-btn" onclick="removeRow('${id}')">&times;</button></td>
   `;
   tbody.appendChild(tr);
+  autoResizeName(tr.querySelector('.name-field'));
   reindex();
   recalc();
   updateEmptyHint();
