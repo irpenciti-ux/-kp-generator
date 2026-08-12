@@ -805,7 +805,7 @@
   <div class="toolbar no-print">
     <button class="primary" onclick="openViewer()">Переглянути КП</button>
     <button class="client-hide" onclick="openPicker()">+ Додати товар</button>
-    <button class="client-hide" onclick="copyShareLink()">Посилання для клієнта</button>
+    <button class="client-hide" onclick="shareToClient()">Поділитися з клієнтом</button>
     <button class="client-hide" onclick="saveProposal()">Зберегти КП</button>
     <button class="client-hide" onclick="openSavedList()">Мої КП</button>
     <button class="ghost" onclick="doPrint()">Друк</button>
@@ -1743,18 +1743,32 @@ function buildShareUrl(){
   return base + '#kp=' + encoded;
 }
 
-async function copyShareLink(){
+async function shareToClient(){
   const itemCount = document.querySelectorAll('#itemsBody tr').length;
   if(itemCount === 0){
     alert('Спочатку додай хоча б один товар.');
     return;
   }
   const url = buildShareUrl();
+  const title = document.getElementById('proposalTitle').value.trim() || 'Комерційна пропозиція';
+  const client = document.getElementById('clientName').value.trim();
+  const text = title + (client ? ' для ' + client : '');
+
+  if(navigator.share){
+    try{
+      await navigator.share({ title: title, text: text, url: url });
+      return;
+    }catch(err){
+      if(err && err.name === 'AbortError') return;
+      console.error('share error', err);
+    }
+  }
+
   try{
     await navigator.clipboard.writeText(url);
     alert('Посилання скопійовано. Встав його клієнту в Viber, Telegram чи будь-де.');
-  }catch(err){
-    prompt('Не вдалося скопіювати автоматично. Скопіюй посилання вручну:', url);
+  }catch(err2){
+    prompt('Скопіюй посилання вручну:', url);
   }
 }
 
