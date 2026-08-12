@@ -381,6 +381,7 @@
     margin-top:28px;
     padding-top:22px;
     border-top:1px dashed var(--line);
+    text-align:center;
   }
   .appendix-title{
     font-family:'Manrope', Arial, sans-serif;
@@ -393,6 +394,8 @@
   .appendix-photo-wrap{
     width:100%;
     max-width:420px;
+    margin-left:auto;
+    margin-right:auto;
     border:1px solid var(--line);
     border-radius:4px;
     overflow:hidden;
@@ -604,9 +607,10 @@
       display:flex;
       flex-wrap:wrap;
       align-items:center;
+      justify-content:center;
       column-gap:6px;
-      row-gap:6px;
-      padding:10px 0;
+      row-gap:8px;
+      padding:14px 0;
       border-bottom:1px solid var(--line);
     }
     tbody td{
@@ -616,28 +620,35 @@
       padding:0;
     }
     .idx{ display:none; }
-    .photo-cell{ order:1; width:auto; }
-    .photo-wrap{ width:34px; height:34px; }
-    .photo-box{ width:34px; height:34px; font-size:14px; }
-    .photo-edit{ width:15px; height:15px; font-size:8px; }
 
-    .qty-field, td:has(.qty-field){ order:2; }
-    td:has(.unit-field){ order:3; }
-    td:has(.price-field){ order:4; }
-    .sum-cell{ order:5; margin-left:auto; }
-    .row-actions{ order:6; width:auto; }
+    .photo-cell{
+      order:1;
+      flex:1 1 100%;
+      justify-content:center;
+    }
+    .photo-wrap{ width:76px; height:76px; margin:0 auto; }
+    .photo-box{ width:76px; height:76px; font-size:26px; border-radius:6px; }
+    .photo-edit{ width:20px; height:20px; font-size:10px; }
 
     .name-cell{
-      order:7;
+      order:2;
       flex:1 1 100%;
       width:100%;
+      justify-content:center;
     }
     input.name-field{
-      font-size:15.5px;
-      font-weight:600;
+      font-size:16px;
+      font-weight:700;
       white-space:normal;
       min-width:0;
+      text-align:center;
     }
+
+    .qty-field, td:has(.qty-field){ order:3; }
+    td:has(.unit-field){ order:4; }
+    td:has(.price-field){ order:5; }
+    .sum-cell{ order:6; }
+    .row-actions{ order:7; width:auto; }
 
     input.qty-field{ width:44px; padding-left:1px; padding-right:1px; }
     input.unit-field{ width:32px; padding-left:1px; padding-right:1px; }
