@@ -392,11 +392,13 @@
     margin-bottom:14px;
   }
   .also-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
+    display:flex;
+    flex-wrap:wrap;
     gap:10px;
   }
   .also-card{
+    box-sizing:border-box;
+    flex:1 1 calc(33.333% - 7px);
     display:flex;
     align-items:flex-start;
     gap:10px;
@@ -633,7 +635,7 @@
 
   @media (max-width:640px){
     body{ padding:14px 8px 40px; }
-    .also-grid{ grid-template-columns:1fr; }
+    .also-card{ flex-basis:100%; }
     .toolbar{
       gap:8px;
     }
