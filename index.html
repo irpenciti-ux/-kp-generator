@@ -1167,6 +1167,12 @@ async function sharePdf(){
     const blob = await html2pdf().set(opt).from(el).toPdf().output('blob');
     const file = new File([blob], filename, { type: 'application/pdf' });
 
+    try{
+      await navigator.clipboard.writeText(buildShareUrl());
+    }catch(copyErr){
+      console.error('link copy error', copyErr);
+    }
+
     if(navigator.canShare && navigator.canShare({ files: [file] })){
       await navigator.share({
         files: [file],
