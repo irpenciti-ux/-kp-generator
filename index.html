@@ -675,7 +675,7 @@
     <button onclick="saveProposal()">Зберегти КП</button>
     <button onclick="openSavedList()">Мої КП</button>
     <button class="ghost" onclick="doPrint()">Друк</button>
-    <button class="ghost" onclick="downloadPdf()">Зберегти PDF</button>
+    <button class="ghost" id="pdfBtn" onclick="downloadPdf()">Зберегти PDF</button>
     <button class="ghost" onclick="resetDoc()">Очистити (нова КП)</button>
   </div>
 
@@ -830,15 +830,25 @@ async function downloadPdf(){
     alert('Не вдалося завантажити модуль PDF. Спробуй кнопку "Друк" і збережи як PDF через діалог друку.');
     return;
   }
+  const btn = document.getElementById('pdfBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Генерується...';
+  btn.disabled = true;
   updateAppendix();
   document.body.classList.add('print-mode');
   const el = document.getElementById('sheet');
   const opt = {
     margin: 8,
     filename: pdfFileName(),
-    image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: {
+      scale: 4,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      letterRendering: true,
+      dpi: 300
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false },
     pagebreak: { mode: ['css', 'avoid-all'] }
   };
   try{
@@ -848,6 +858,8 @@ async function downloadPdf(){
     alert('Не вдалося зберегти PDF. Спробуй кнопку "Друк" і збережи як PDF через діалог друку.');
   }finally{
     document.body.classList.remove('print-mode');
+    btn.textContent = originalText;
+    btn.disabled = false;
   }
 }
 
