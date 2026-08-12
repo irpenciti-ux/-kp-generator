@@ -1798,6 +1798,7 @@ function applyClientModeFromHash(){
     updateAppendix();
     updateDocTitle();
     enableClientMode();
+    openViewer();
   }catch(err){
     console.error('share link decode error', err);
   }
