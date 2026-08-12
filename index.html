@@ -810,6 +810,7 @@
     <button class="client-hide" onclick="openSavedList()">Мої КП</button>
     <button class="ghost" onclick="doPrint()">Друк</button>
     <button class="ghost" id="pdfBtn" onclick="downloadPdf()">Зберегти PDF</button>
+    <button class="ghost" id="sharePdfBtn" onclick="sharePdf()">Поділитися PDF</button>
     <button class="ghost client-hide" onclick="resetDoc()">Очистити (нова КП)</button>
   </div>
   <div class="client-banner no-print" id="clientBanner">Це готова комерційна пропозиція від ЄВРОБУД. Переглянь нижче або відкрий на весь екран кнопкою вище.</div>
@@ -1126,6 +1127,68 @@ async function downloadPdf(){
   }catch(err){
     console.error('pdf error', err);
     alert('Не вдалося зберегти PDF. Спробуй кнопку "Друк" і збережи як PDF через діалог друку.');
+  }finally{
+    document.body.classList.remove('print-mode');
+    resetFitToOnePage();
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+async function sharePdf(){
+  if(typeof html2pdf === 'undefined'){
+    alert('Не вдалося завантажити модуль PDF. Спробуй кнопку "Зберегти PDF".');
+    return;
+  }
+  const btn = document.getElementById('sharePdfBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Генерується...';
+  btn.disabled = true;
+  updateAppendix();
+  document.body.classList.add('print-mode');
+  applyFitToOnePage();
+  const el = document.getElementById('sheet');
+  const filename = pdfFileName();
+  const opt = {
+    margin: 8,
+    filename: filename,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: {
+      scale: 4,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      letterRendering: true,
+      dpi: 300
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: false },
+    pagebreak: { mode: ['css', 'avoid-all'] }
+  };
+  try{
+    const blob = await html2pdf().set(opt).from(el).toPdf().output('blob');
+    const file = new File([blob], filename, { type: 'application/pdf' });
+
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({
+        files: [file],
+        title: document.getElementById('proposalTitle').value.trim() || 'Комерційна пропозиція'
+      });
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+  }catch(err){
+    if(err && err.name === 'AbortError'){
+      // користувач сам закрив меню поширення - нічого не робимо
+    } else {
+      console.error('share pdf error', err);
+      alert('Не вдалося поділитись PDF напряму. Спробуй кнопку "Зберегти PDF" і додай файл вручну.');
+    }
   }finally{
     document.body.classList.remove('print-mode');
     resetFitToOnePage();
