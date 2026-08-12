@@ -597,21 +597,53 @@
 
     .field, input, select, textarea{ font-size:16px; }
 
-    .table-scroll{ margin:0 -16px; padding:0 16px; }
-    thead th{ font-size:9px; padding:0 2px 6px; }
-    tbody td{ padding:5px 2px; font-size:12.5px; }
+    .table-scroll{ overflow-x:visible; margin:0; padding:0; }
+    thead{ display:none; }
+    tbody{ display:block; }
+    tbody tr{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      column-gap:6px;
+      row-gap:6px;
+      padding:10px 0;
+      border-bottom:1px solid var(--line);
+    }
+    tbody td{
+      display:flex;
+      align-items:center;
+      border-bottom:none;
+      padding:0;
+    }
     .idx{ display:none; }
-    .photo-cell{ width:36px; }
-    .photo-wrap{ width:32px; height:32px; }
-    .photo-box{ width:32px; height:32px; font-size:14px; }
-    .photo-edit{ width:14px; height:14px; font-size:8px; }
-    input.name-field{ min-width:64px; }
-    input.qty-field{ width:42px; padding-left:1px; padding-right:1px; }
-    input.unit-field{ width:30px; padding-left:1px; padding-right:1px; }
-    input.price-field{ width:56px; padding-left:1px; padding-right:1px; }
-    .sum-cell{ font-size:12px; }
-    .row-actions{ width:18px; }
-    .del-btn{ padding:2px 1px; font-size:14px; }
+    .photo-cell{ order:1; width:auto; }
+    .photo-wrap{ width:34px; height:34px; }
+    .photo-box{ width:34px; height:34px; font-size:14px; }
+    .photo-edit{ width:15px; height:15px; font-size:8px; }
+
+    .qty-field, td:has(.qty-field){ order:2; }
+    td:has(.unit-field){ order:3; }
+    td:has(.price-field){ order:4; }
+    .sum-cell{ order:5; margin-left:auto; }
+    .row-actions{ order:6; width:auto; }
+
+    .name-cell{
+      order:7;
+      flex:1 1 100%;
+      width:100%;
+    }
+    input.name-field{
+      font-size:15.5px;
+      font-weight:600;
+      white-space:normal;
+      min-width:0;
+    }
+
+    input.qty-field{ width:44px; padding-left:1px; padding-right:1px; }
+    input.unit-field{ width:32px; padding-left:1px; padding-right:1px; }
+    input.price-field{ width:60px; padding-left:1px; padding-right:1px; }
+    .sum-cell{ font-size:13px; }
+    .del-btn{ padding:2px 4px; font-size:16px; }
 
     .delivery-block{
       flex-direction:column;
@@ -938,7 +970,7 @@ function addRow(prefill){
       <input type="file" id="file_${id}" accept="image/*" style="display:none" onchange="handlePhoto(event,'${id}')">
     </td>
     <td class="idx"></td>
-    <td><input class="field name-field" placeholder="назва товару" value="${prefill?prefill.name:''}" oninput="updateAppendix()"></td>
+    <td class="name-cell"><input class="field name-field" placeholder="назва товару" value="${prefill?prefill.name:''}" oninput="updateAppendix()"></td>
     <td class="num"><input class="field qty-field" type="number" min="0" step="1" value="${prefill?prefill.qty:''}" oninput="recalcRow('${id}')"></td>
     <td><input class="field unit-field" placeholder="шт" value="${prefill?prefill.unit:'шт'}"></td>
     <td class="num"><input class="field price-field" type="number" min="0" step="0.01" value="${prefill?prefill.price:''}" oninput="recalcRow('${id}')"></td>
