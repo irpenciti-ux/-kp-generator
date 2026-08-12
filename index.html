@@ -117,6 +117,10 @@
     color:var(--ink);
     margin:0 0 4px;
   }
+  .proposal-title-row{ font-size:13px; margin-bottom:12px; display:flex; gap:8px; align-items:baseline; }
+  .proposal-title-row label{ color:var(--ink-soft); white-space:nowrap; }
+  .proposal-title-row input{ flex:1; font-size:13px; font-weight:600; color:var(--brick); }
+
   .client-row{ font-size:13px; margin-bottom:22px; display:flex; gap:8px 16px; align-items:baseline; flex-wrap:wrap; }
   .client-row label{ color:var(--ink-soft); white-space:nowrap; }
   .client-row input{ flex:1; min-width:120px; font-size:13px; }
@@ -644,6 +648,16 @@
     .picker-overlay{ display:none !important; }
     .viewer-overlay{ display:none !important; }
     .empty-hint{ display:none; }
+    .proposal-title-row:has(#proposalTitle:placeholder-shown){ display:none; }
+    .total-row{
+      background:var(--brick-soft) !important;
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+    }
+    .total-row .label{ color:var(--ink) !important; }
+    .total-row .value{ color:var(--brick) !important; }
+    .appendix-photo-wrap{ cursor:default; page-break-inside:avoid; }
+    .appendix-page{ page-break-inside:avoid; }
     @page{ size:A4; margin:12mm; }
   }
 </style>
@@ -655,7 +669,7 @@
     <button onclick="openPicker()">+ Додати товар</button>
     <button onclick="saveProposal()">Зберегти КП</button>
     <button onclick="openSavedList()">Мої КП</button>
-    <button class="ghost" onclick="window.print()">Друк / PDF</button>
+    <button class="ghost" onclick="window.print()">Друк / Зберегти PDF</button>
     <button class="ghost" onclick="resetDoc()">Очистити (нова КП)</button>
   </div>
 
@@ -677,9 +691,13 @@
     </div>
 
     <p class="title-line">Комерційна пропозиція</p>
+    <div class="proposal-title-row">
+      <label>Назва КП:</label>
+      <input class="field" id="proposalTitle" placeholder="напр. КП Іванов - Кератерм" oninput="updateDocTitle()">
+    </div>
     <div class="client-row">
       <label>Клієнт / об'єкт:</label>
-      <input class="field" id="clientName" placeholder="назва компанії або об'єкта">
+      <input class="field" id="clientName" placeholder="назва компанії або об'єкта" oninput="updateDocTitle()">
       <label>Тел. клієнта:</label>
       <input class="field" id="clientPhone" placeholder="0XX XXX XX XX">
     </div>
@@ -776,6 +794,12 @@ const PRODUCTS = [
 function todayISO(){
   const d = new Date();
   return d.toISOString().slice(0,10);
+}
+
+function updateDocTitle(){
+  const t = document.getElementById('proposalTitle').value.trim();
+  const c = document.getElementById('clientName').value.trim();
+  document.title = t || (c ? ('КП - ' + c) : 'Комерційна пропозиція');
 }
 
 function fmt(n){
@@ -981,6 +1005,7 @@ function recalc(){
 function resetDoc(){
   if(!confirm('Очистити всі товари і почати нову КП?')) return;
   document.getElementById('itemsBody').innerHTML = '';
+  document.getElementById('proposalTitle').value = '';
   document.getElementById('clientName').value = '';
   document.getElementById('clientPhone').value = '';
   document.getElementById('deliveryLocation').value = '';
@@ -990,6 +1015,7 @@ function resetDoc(){
   updateEmptyHint();
   recalc();
   updateAppendix();
+  updateDocTitle();
 }
 
 /* ---------- save / load proposals (у своєму браузері) ---------- */
@@ -1012,6 +1038,7 @@ function saveProposal(){
       return;
     }
     const data = {
+      proposalTitle: document.getElementById('proposalTitle').value,
       client: document.getElementById('clientName').value || 'Без назви',
       clientPhone: document.getElementById('clientPhone').value,
       date: document.getElementById('docDate').value,
@@ -1067,8 +1094,9 @@ function openSavedList(){
           <button type="button" class="ghost">Видалити</button>
         </div>
       `;
-      row.querySelector('.saved-client').textContent = d.client || 'Без назви';
-      row.querySelector('.saved-meta').textContent = (d.date || '') + ' · ' + (d.total || '0') + ' грн';
+      row.querySelector('.saved-client').textContent = d.proposalTitle || d.client || 'Без назви';
+      const metaClient = d.proposalTitle && d.client ? (d.client + ' · ') : '';
+      row.querySelector('.saved-meta').textContent = metaClient + (d.date || '') + ' · ' + (d.total || '0') + ' грн';
       const btns = row.querySelectorAll('button');
       btns[0].onclick = () => loadProposal(entry.key);
       btns[1].onclick = () => deleteProposal(entry.key);
@@ -1092,6 +1120,7 @@ function loadProposal(key){
       return;
     }
     const data = JSON.parse(raw);
+    document.getElementById('proposalTitle').value = data.proposalTitle || '';
     document.getElementById('clientName').value = data.client || '';
     document.getElementById('clientPhone').value = data.clientPhone || '';
     document.getElementById('docDate').value = data.date || todayISO();
@@ -1106,6 +1135,7 @@ function loadProposal(key){
     recalc();
     updateEmptyHint();
     updateAppendix();
+    updateDocTitle();
     closeSavedList();
   }catch(err){
     console.error('load error', err);
@@ -1340,6 +1370,7 @@ document.getElementById('docDate').value = todayISO();
 renderPicker();
 updateEmptyHint();
 recalc();
+updateDocTitle();
 </script>
 </body>
 </html>
