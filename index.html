@@ -1242,7 +1242,8 @@ async function sharePdf(){
     const file = new File([blob], filename, { type: 'application/pdf' });
 
     try{
-      await navigator.clipboard.writeText(buildShareUrl());
+      const shortUrl = await shortenUrl(buildShareUrl());
+      await navigator.clipboard.writeText(shortUrl);
     }catch(copyErr){
       console.error('link copy error', copyErr);
     }
@@ -1898,24 +1899,43 @@ function buildShareUrl(){
   return base + '#kp=' + encoded;
 }
 
+async function shortenUrl(longUrl){
+  try{
+    const resp = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl));
+    if(!resp.ok) throw new Error('bad status');
+    const text = (await resp.text()).trim();
+    if(text.indexOf('http') === 0){
+      return text;
+    }
+    throw new Error('bad response');
+  }catch(err){
+    console.error('shorten failed, using full link', err);
+    return longUrl;
+  }
+}
+
 async function shareToClient(){
   const itemCount = document.querySelectorAll('#itemsBody tr').length;
   if(itemCount === 0){
     alert('Спочатку додай хоча б один товар.');
     return;
   }
-  const url = buildShareUrl();
+  const longUrl = buildShareUrl();
   const btn = document.getElementById('shareBtn');
   const originalText = btn ? btn.textContent : '';
+  if(btn){ btn.textContent = 'Створюється...'; btn.disabled = true; }
+
+  const url = await shortenUrl(longUrl);
 
   try{
     await navigator.clipboard.writeText(url);
     if(btn){
       btn.textContent = 'Скопійовано ✓';
-      setTimeout(() => { btn.textContent = originalText; }, 1600);
+      setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 1600);
     }
   }catch(err){
     prompt('Скопіюй посилання вручну:', url);
+    if(btn){ btn.textContent = originalText; btn.disabled = false; }
   }
 }
 
