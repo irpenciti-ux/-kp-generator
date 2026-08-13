@@ -397,17 +397,21 @@
   input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   input[type=number]{ -moz-appearance:textfield; }
 
+  .hidden-field{ display:none !important; }
+
   .delivery-block{
     margin-top:14px;
-    padding-top:14px;
-    border-top:1px solid var(--ink);
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#f7f8fa;
     display:flex;
     justify-content:space-between;
     gap:20px;
     font-size:13.5px;
   }
   .delivery-block .loc{ flex:1; display:flex; gap:8px; align-items:baseline; }
-  .delivery-block label{ color:var(--ink-soft); white-space:nowrap; }
+  .delivery-block label{ color:var(--ink); font-weight:700; white-space:nowrap; }
   .delivery-block .loc input{ flex:1; }
   .delivery-block .cost{ text-align:right; white-space:nowrap; }
   .delivery-block .cost input{ width:80px; text-align:right; }
@@ -890,8 +894,8 @@
       <input class="field" id="proposalTitle" placeholder="напр. КП Іванов - Кератерм" oninput="updateDocTitle()">
     </div>
     <div class="client-row">
-      <label>Клієнт / об'єкт:</label>
-      <input class="field" id="clientName" placeholder="назва компанії або об'єкта" oninput="updateDocTitle()">
+      <label class="hidden-field" for="clientName">Клієнт / об'єкт:</label>
+      <input class="field hidden-field" id="clientName" placeholder="назва компанії або об'єкта" oninput="updateDocTitle()">
       <label>Тел. клієнта:</label>
       <input class="field" id="clientPhone" placeholder="0XX XXX XX XX">
     </div>
