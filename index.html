@@ -841,6 +841,7 @@
 </style>
 </head>
 <body>
+<script>if(location.hash.indexOf('#kp=') === 0){ document.body.classList.add('client-mode'); }</script>
 
   <div class="manager-bar no-print client-hide">
     <label for="managerSelect">Менеджер, від кого КП:</label>
@@ -1963,7 +1964,6 @@ function applyClientModeFromHash(){
     updateAppendix();
     updateDocTitle();
     enableClientMode();
-    openViewer();
   }catch(err){
     console.error('share link decode error', err);
   }
