@@ -193,6 +193,7 @@
   td.num{ text-align:right; white-space:nowrap; }
   td.idx{ color:var(--ink-soft); width:20px; }
   .name-field{ width:100%; min-width:110px; resize:none; overflow:hidden; display:block; line-height:1.3; }
+  .row-desc{ font-size:10.5px; color:var(--brick); margin-top:2px; line-height:1.3; }
   input.qty-field, input.unit-field{ width:52px; text-align:right; }
   input.unit-field{ width:40px; text-align:left; }
   input.price-field{ width:74px; text-align:right; }
@@ -691,6 +692,7 @@
   .offer-item-mid{ flex:1; min-width:0; }
   .offer-item-name{ font-weight:600; font-size:13.5px; }
   .offer-item-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .offer-item-desc{ font-size:10.5px; color:var(--brick); margin-top:1px; }
   .offer-item-sum{ font-weight:700; font-size:13.5px; white-space:nowrap; }
   .offer-delivery{ font-size:12.5px; color:var(--ink-soft); padding-top:12px; }
   .offer-total{
@@ -1477,7 +1479,10 @@ function addRow(prefill){
       <input type="file" id="file_${id}" accept="image/*" style="display:none" onchange="handlePhoto(event,'${id}')">
     </td>
     <td class="idx"></td>
-    <td class="name-cell"><textarea class="field name-field" rows="1" placeholder="назва товару" oninput="updateAppendix(); autoResizeName(this);">${prefill?escapeHtml(prefill.name):''}</textarea></td>
+    <td class="name-cell">
+      <textarea class="field name-field" rows="1" placeholder="назва товару" oninput="updateAppendix(); autoResizeName(this);">${prefill?escapeHtml(prefill.name):''}</textarea>
+      <div class="row-desc">${prefill && prefill.desc ? escapeHtml(prefill.desc) : ''}</div>
+    </td>
     <td class="num"><input class="field qty-field" type="number" min="0" step="1" value="${prefill?prefill.qty:''}" oninput="recalcRow('${id}')"></td>
     <td><input class="field unit-field" placeholder="шт" value="${prefill?prefill.unit:'шт'}"></td>
     <td class="num"><input class="field price-field" type="number" min="0" step="0.01" value="${prefill?prefill.price:''}" oninput="recalcRow('${id}')"></td>
@@ -1836,6 +1841,7 @@ function buildOfferSlideElement(){
       const unit = tr.querySelector('.unit-field').value || '';
       const price = tr.querySelector('.price-field').value || '0';
       const sum = tr.querySelector('.sum-display').textContent;
+      const desc = tr.dataset.desc || '';
 
       const item = document.createElement('div');
       item.className = 'offer-item';
@@ -1860,6 +1866,12 @@ function buildOfferSlideElement(){
       sb.textContent = qty + ' ' + unit + ' × ' + price + ' грн';
       mid.appendChild(nm);
       mid.appendChild(sb);
+      if(desc){
+        const dsc = document.createElement('div');
+        dsc.className = 'offer-item-desc';
+        dsc.textContent = desc;
+        mid.appendChild(dsc);
+      }
       item.appendChild(mid);
 
       const sm = document.createElement('div');
